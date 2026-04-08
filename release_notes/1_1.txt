@@ -1,0 +1,2 @@
+- Add the ability to set your birthday in configuration for a special season display image
+- Extended Latin character support for localized day names

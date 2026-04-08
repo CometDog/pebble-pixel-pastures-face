@@ -8,6 +8,7 @@ Features:
 - Current weather conditions and seasons are reflected on the clock
 - Step count (on supported Pebble models) or current temperature, displayed in the lower panel (configurable in the Pebble app)
 - Battery level displays as an energy bar when you shake your wrist twice
+- Display a special season indicator image when it is your birthday! (Set this up in Configuration)
 - All platforms supported, black and white, color, rectangular, round, big, and small!
 - Timeline quick view works!
 
