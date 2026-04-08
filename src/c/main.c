@@ -247,10 +247,25 @@ static void global_tick_handler(struct tm *tick_time, TimeUnits units_changed)
 
 // MARK: (De)init
 
+static const char *supported_locale_or_default(void)
+{
+    static const char *supported[] = {"en", "fr", "it", "de", "nl", "fi", "es", "pt", "sv", "no",
+                                      "nb", "nn", "da", "ro", "pl", "cs", "sk", "hr", "is"};
+    const char *locale = i18n_get_system_locale();
+    for (size_t i = 0; i < ARRAY_LENGTH(supported); i++)
+    {
+        if (strncmp(locale, supported[i], 2) == 0)
+        {
+            return locale;
+        }
+    }
+    return "en_US";
+}
+
 void init(Window *window)
 {
-    setlocale(LC_ALL, i18n_get_system_locale());
-    
+    setlocale(LC_ALL, supported_locale_or_default());
+
     messaging_init(refresh_all);
 
     tick_timer_service_subscribe(MINUTE_UNIT, global_tick_handler);
