@@ -1,0 +1,201 @@
+{
+  "name": "pebble-pixel-pastures",
+  "author": "James Downs",
+  "version": "1.0.0",
+  "keywords": [
+    "pebble-app"
+  ],
+  "private": true,
+  "dependencies": {
+    "pebble-packet": "1.6.0",
+    "@rebble/clay": "1.0.8"
+  },
+  "pebble": {
+    "displayName": "Pixel Pastures",
+    "uuid": "9f5c5a70-3383-4a1d-b09a-3cc537242890",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "aplite",
+      "basalt",
+      "chalk",
+      "diorite",
+      "emery",
+      "flint",
+      "gabbro"
+    ],
+    "watchapp": {
+      "watchface": true
+    },
+    "messageKeys": [
+      "type",
+      "season",
+      "weatherCondition",
+      "sunriseHour",
+      "sunsetHour",
+      "temperatureC",
+      "temperatureF",
+      "SETTINGS_DETAIL_TYPE",
+      "SETTINGS_TEMPERATURE_UNIT",
+      "SETTINGS_BIRTHDAY"
+    ],
+    "capabilities": [
+      "health",
+      "location",
+      "configurable"
+    ],
+    "resources": {
+      "media": [
+        {
+          "type": "bitmap",
+          "name": "APP_ICON",
+          "file": "images/app-icon-1-bit.png",
+          "menuIcon": true,
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "APP_ICON",
+          "file": "images/app-icon.png",
+          "targetPlatforms": [
+            "basalt",
+            "chalk",
+            "diorite",
+            "emery",
+            "flint",
+            "gabbro"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_CLOCK_FRAME_PARTS",
+          "file": "images/clock-frame-parts-m.png",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_CLOCK_FRAME_PARTS",
+          "file": "images/clock-frame-parts-l.png",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_CLOCK_ARROW",
+          "file": "images/clock-arrow-m.png",
+          "targetPlatforms": [
+            "basalt",
+            "chalk"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_CLOCK_ARROW",
+          "file": "images/clock-arrow-m-bw.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_CLOCK_ARROW",
+          "file": "images/clock-arrow-l.png",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BACKGROUND",
+          "file": "images/background.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_WEATHER",
+          "file": "images/seasons-m.png",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_WEATHER",
+          "file": "images/seasons-l.png",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_NUMBERS",
+          "file": "images/digits-m.png",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_NUMBERS",
+          "file": "images/digits-l.png",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
+        },
+        {
+          "type": "font",
+          "name": "FONT_SV_REGULAR_24",
+          "file": "fonts/sv-regular-12.ttf",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "font",
+          "name": "FONT_SV_REGULAR_32",
+          "file": "fonts/sv-regular-16.ttf",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
+        }
+      ]
+    }
+  },
+  "devDependencies": {
+    "pkts": "^0.3.0-beta.1",
+    "prettier": "^3.8.1"
+  },
+  "scripts": {
+    "build": "pkts build",
+    "prettier:write": "npx prettier src/ts --write"
+  }
+}

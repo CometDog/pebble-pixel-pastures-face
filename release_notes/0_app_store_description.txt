@@ -1,0 +1,18 @@
+Bring the cozy farm clock to your wrist
+
+This watchface recreates the look and feel of the beloved farming game with Pebble-ready pixel art inspired by the original.
+
+Features:
+- Digital date and time with font designs faithful to the original
+- Sunrise and sunset indicator shows the arc of daylight for your location
+- Current weather conditions and seasons are reflected on the clock
+- Step count (on supported Pebble models) or current temperature, displayed in the lower panel (configurable in the Pebble app)
+- Battery level displays as an energy bar when you shake your wrist twice
+- All platforms supported, black and white, color, rectangular, round, big, and small!
+- Timeline quick view works!
+
+---
+
+Assets are recreations of the original Stardew Valley game assets. All original artwork and the Stardew Valley name are the property of ConcernedApe. This watchface is an unofficial fan project and is not affiliated with or endorsed by ConcernedApe.
+
+Weather data provided by Open-Meteo (https://open-meteo.com/), a free, open-source weather API.

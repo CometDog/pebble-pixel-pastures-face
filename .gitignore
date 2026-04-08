@@ -1,0 +1,6 @@
+.vscode
+.lock-*
+build
+node_modules
+ts-build
+**/.DS_Store

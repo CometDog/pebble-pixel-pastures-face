@@ -1,0 +1,8 @@
+#pragma once
+
+enum WeatherSprite
+{
+    WEATHER_SPRITE_SEASON,
+    WEATHER_SPRITE_CONDITION,
+    WEATHER_SPRITE_COUNT,
+};

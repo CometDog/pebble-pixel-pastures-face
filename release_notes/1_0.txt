@@ -1,0 +1,5 @@
+- Support for all platforms
+- Display step count or temperature information in the bottom panel
+- Show battery level when double-tap/shake your watch
+- Sunrise/sunset indicator based on your current location
+- Display current weather conditions and season in the watch face
