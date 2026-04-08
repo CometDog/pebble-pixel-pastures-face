@@ -249,6 +249,8 @@ static void global_tick_handler(struct tm *tick_time, TimeUnits units_changed)
 
 void init(Window *window)
 {
+    setlocale(LC_ALL, i18n_get_system_locale());
+    
     messaging_init(refresh_all);
 
     tick_timer_service_subscribe(MINUTE_UNIT, global_tick_handler);
