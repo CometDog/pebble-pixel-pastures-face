@@ -2,6 +2,7 @@
 
 static GBitmap *s_frame_sprites_bitmap;
 static GBitmap *s_frame_sprite_bitmaps[FRAME_SPRITE_COUNT];
+static bool s_battery_sprites_created = false;
 
 #if defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_GABBRO)
 static const GRect s_frame_sprite_main_board_coords = {.origin = {69, 0},
@@ -79,23 +80,43 @@ void frame_sprites_init(bool use_health)
             part_coords = s_frame_sprite_bottom_board_right_brace_coords;
             break;
         case FRAME_SPRITE_BATTERY_TOP:
-            part_coords = s_frame_sprite_battery_top_coords;
-            break;
         case FRAME_SPRITE_BATTERY_BOTTOM:
-            part_coords = s_frame_sprite_battery_bottom_coords;
-            break;
         case FRAME_SPRITE_BATTERY_BAR_BASE:
-            part_coords = s_frame_sprite_battery_bar_base_coords;
-            break;
         case FRAME_SPRITE_BATTERY_BAR_EXTENDED:
-            part_coords = s_frame_sprite_battery_bar_extended_coords;
-            break;
+            continue;
         case FRAME_SPRITE_TIME_ARROW:
             s_frame_sprite_bitmaps[i] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_CLOCK_ARROW);
             continue;
         }
         s_frame_sprite_bitmaps[i] = gbitmap_create_as_sub_bitmap(s_frame_sprites_bitmap, part_coords);
     }
+}
+
+void frame_sprites_lazy_battery_init(void)
+{
+    if (s_battery_sprites_created)
+    {
+        return;
+    }
+    s_battery_sprites_created = true;
+
+    s_frame_sprite_bitmaps[FRAME_SPRITE_BATTERY_TOP] =
+        gbitmap_create_as_sub_bitmap(s_frame_sprites_bitmap, s_frame_sprite_battery_top_coords);
+    s_frame_sprite_bitmaps[FRAME_SPRITE_BATTERY_BOTTOM] =
+        gbitmap_create_as_sub_bitmap(s_frame_sprites_bitmap, s_frame_sprite_battery_bottom_coords);
+    s_frame_sprite_bitmaps[FRAME_SPRITE_BATTERY_BAR_BASE] =
+        gbitmap_create_as_sub_bitmap(s_frame_sprites_bitmap, s_frame_sprite_battery_bar_base_coords);
+    s_frame_sprite_bitmaps[FRAME_SPRITE_BATTERY_BAR_EXTENDED] =
+        gbitmap_create_as_sub_bitmap(s_frame_sprites_bitmap, s_frame_sprite_battery_bar_extended_coords);
+}
+
+void frame_sprites_update_indicator(bool use_health)
+{
+    gbitmap_destroy(s_frame_sprite_bitmaps[FRAME_SPRITE_BOTTOM_BOARD_INDICATOR]);
+    GRect coords = use_health ? s_frame_sprite_bottom_board_indicator_steps_coords
+                              : s_frame_sprite_bottom_board_indicator_temperature_coords;
+    s_frame_sprite_bitmaps[FRAME_SPRITE_BOTTOM_BOARD_INDICATOR] =
+        gbitmap_create_as_sub_bitmap(s_frame_sprites_bitmap, coords);
 }
 
 void frame_sprites_deinit(void)

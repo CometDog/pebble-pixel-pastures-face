@@ -74,7 +74,8 @@ static void detail_update_proc(Layer *layer, GContext *ctx)
         {
             continue;
         }
-        GRect dest = GRect(x_start + (i * DETAIL_DIGIT_WIDTH) + (i * DETAIL_DIGIT_SPACE), y_start, DETAIL_DIGIT_WIDTH, DETAIL_DIGIT_HEIGHT);
+        GRect dest = GRect(x_start + (i * DETAIL_DIGIT_WIDTH) + (i * DETAIL_DIGIT_SPACE), y_start, DETAIL_DIGIT_WIDTH,
+                           DETAIL_DIGIT_HEIGHT);
         graphics_draw_bitmap_in_rect(ctx, s_digit_bitmaps[digit], dest);
     }
 }
@@ -154,7 +155,37 @@ void detail_set_temperature(int temp, bool is_celsius)
     layer_mark_dirty(s_detail_layer);
 }
 
-void detail_init(Layer *parent_layer)
+void detail_set_mode(bool use_health)
+{
+    for (int i = 0; i < TOTAL_CHARS; i++)
+    {
+        if (s_digit_bitmaps[i])
+        {
+            gbitmap_destroy(s_digit_bitmaps[i]);
+            s_digit_bitmaps[i] = NULL;
+        }
+    }
+
+    int char_count = use_health ? (CHAR_9 + 1) : TOTAL_CHARS;
+    for (int i = 0; i < char_count; i++)
+    {
+        s_digit_bitmaps[i] = gbitmap_create_as_sub_bitmap(
+            s_numbers_bitmap, GRect(i * DETAIL_DIGIT_WIDTH, 0, DETAIL_DIGIT_WIDTH, DETAIL_DIGIT_HEIGHT));
+#ifdef PBL_COLOR
+        gbitmap_get_palette(s_digit_bitmaps[i])[0] = GColorBulgarianRose;
+#else
+        gbitmap_get_palette(s_digit_bitmaps[i])[0] = GColorBlack;
+#endif
+    }
+
+    for (int i = 0; i < DIGIT_COUNT; i++)
+    {
+        s_detail_digits[i] = NONE;
+    }
+    layer_mark_dirty(s_detail_layer);
+}
+
+void detail_init(Layer *parent_layer, bool use_health)
 {
     s_detail_layer = layer_create(GRect(0, 0, PBL_DISPLAY_WIDTH, PBL_DISPLAY_HEIGHT));
     layer_set_update_proc(s_detail_layer, detail_update_proc);
@@ -164,11 +195,12 @@ void detail_init(Layer *parent_layer)
     frame_sprite_alloc(&s_middle_board_bitmap, FRAME_SPRITE_BOTTOM_BOARD_MIDDLE);
     frame_sprite_alloc(&s_right_brace_bitmap, FRAME_SPRITE_BOTTOM_BOARD_RIGHT_BRACE);
 
+    int char_count = use_health ? (CHAR_9 + 1) : TOTAL_CHARS;
     s_numbers_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_NUMBERS);
-    for (int i = 0; i < TOTAL_CHARS; i++)
+    for (int i = 0; i < char_count; i++)
     {
-        s_digit_bitmaps[i] =
-            gbitmap_create_as_sub_bitmap(s_numbers_bitmap, GRect(i * DETAIL_DIGIT_WIDTH, 0, DETAIL_DIGIT_WIDTH, DETAIL_DIGIT_HEIGHT));
+        s_digit_bitmaps[i] = gbitmap_create_as_sub_bitmap(
+            s_numbers_bitmap, GRect(i * DETAIL_DIGIT_WIDTH, 0, DETAIL_DIGIT_WIDTH, DETAIL_DIGIT_HEIGHT));
 #ifdef PBL_COLOR
         gbitmap_get_palette(s_digit_bitmaps[i])[0] = GColorBulgarianRose;
 #else

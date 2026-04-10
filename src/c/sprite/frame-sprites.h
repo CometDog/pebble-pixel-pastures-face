@@ -47,4 +47,6 @@
 
 void frame_sprites_init(bool use_health);
 void frame_sprites_deinit(void);
+void frame_sprites_lazy_battery_init(void);
+void frame_sprites_update_indicator(bool use_health);
 void frame_sprite_alloc(GBitmap **part_bitmap, enum FrameSprite part);

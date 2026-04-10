@@ -12,6 +12,7 @@ static GBitmap *s_battery_bar_bitmap_2;
 static GBitmap *s_battery_bottom_bitmap;
 static uint8_t s_battery_percent = 0;
 static bool s_obscured = false;
+static bool s_created = false;
 static int16_t s_bar_1_h = 0;
 static int16_t s_bar_2_h = 0;
 static GRect s_battery_bar_rect;
@@ -47,6 +48,15 @@ void battery_init(Layer *parent_layer)
 {
     s_battery_container = layer_create(GRect(0, 0, PBL_DISPLAY_WIDTH + BATTERY_SLIDE_DISTANCE, PBL_DISPLAY_HEIGHT));
     layer_add_child(parent_layer, s_battery_container);
+}
+
+void battery_lazy_init(void)
+{
+    if (s_created)
+    {
+        return;
+    }
+    s_created = true;
 
     frame_sprite_alloc(&s_battery_top_bitmap, FRAME_SPRITE_BATTERY_TOP);
     get_rect_for_frame_part(&s_battery_top_rect, FRAME_SPRITE_BATTERY_TOP, s_battery_top_bitmap);
@@ -78,12 +88,20 @@ void battery_init(Layer *parent_layer)
 void battery_update_level(int percent)
 {
     s_battery_percent = percent;
-    layer_mark_dirty(s_battery_fill_layer);
+    if (s_created)
+    {
+        layer_mark_dirty(s_battery_fill_layer);
+    }
 }
 
 void battery_set_obscured(bool obscured)
 {
     s_obscured = obscured;
+
+    if (!s_created)
+    {
+        return;
+    }
 
     layer_set_hidden(bitmap_layer_get_layer(s_battery_bar_layer_2), obscured);
 
@@ -118,10 +136,13 @@ Layer *battery_get_layer(void)
 
 void battery_deinit(void)
 {
-    layer_destroy(s_battery_fill_layer);
-    bitmap_layer_destroy(s_battery_bottom_layer);
-    bitmap_layer_destroy(s_battery_bar_layer_2);
-    bitmap_layer_destroy(s_battery_bar_layer_1);
-    bitmap_layer_destroy(s_battery_top_layer);
+    if (s_created)
+    {
+        layer_destroy(s_battery_fill_layer);
+        bitmap_layer_destroy(s_battery_bottom_layer);
+        bitmap_layer_destroy(s_battery_bar_layer_2);
+        bitmap_layer_destroy(s_battery_bar_layer_1);
+        bitmap_layer_destroy(s_battery_top_layer);
+    }
     layer_destroy(s_battery_container);
 }

@@ -5,6 +5,7 @@ static GBitmap *s_main_frame_bitmap;
 static GBitmap *s_time_display_board_bitmap;
 static GBitmap *s_bottom_board_indicator_bitmap;
 static BitmapLayer *s_frame_bitmap_layer;
+static BitmapLayer *s_time_board_bitmap_layer;
 static BitmapLayer *s_bottom_board_indicator_layer;
 static GRect s_bottom_board_indicator_rect;
 
@@ -31,13 +32,20 @@ void frame_init(Layer *parent_layer)
     frame_sprite_alloc(&s_time_display_board_bitmap, FRAME_SPRITE_TIME_BOARD);
     GRect time_board_rect;
     get_rect_for_frame_part(&time_board_rect, FRAME_SPRITE_TIME_BOARD, s_time_display_board_bitmap);
-    create_sprite_layer(s_time_display_board_bitmap, time_board_rect, s_frame_layer);
+    s_time_board_bitmap_layer = create_sprite_layer(s_time_display_board_bitmap, time_board_rect, s_frame_layer);
 
     frame_sprite_alloc(&s_bottom_board_indicator_bitmap, FRAME_SPRITE_BOTTOM_BOARD_INDICATOR);
     get_rect_for_frame_part(&s_bottom_board_indicator_rect, FRAME_SPRITE_BOTTOM_BOARD_INDICATOR,
                             s_bottom_board_indicator_bitmap);
     s_bottom_board_indicator_layer =
         create_sprite_layer(s_bottom_board_indicator_bitmap, s_bottom_board_indicator_rect, s_frame_layer);
+}
+
+void frame_update_indicator(void)
+{
+    frame_sprite_alloc(&s_bottom_board_indicator_bitmap, FRAME_SPRITE_BOTTOM_BOARD_INDICATOR);
+    bitmap_layer_set_bitmap(s_bottom_board_indicator_layer, s_bottom_board_indicator_bitmap);
+    layer_mark_dirty(bitmap_layer_get_layer(s_bottom_board_indicator_layer));
 }
 
 void frame_set_obscured(bool obscured)
@@ -53,6 +61,7 @@ void frame_set_obscured(bool obscured)
 void frame_deinit(void)
 {
     bitmap_layer_destroy(s_bottom_board_indicator_layer);
+    bitmap_layer_destroy(s_time_board_bitmap_layer);
     bitmap_layer_destroy(s_frame_bitmap_layer);
     layer_destroy(s_frame_layer);
 }

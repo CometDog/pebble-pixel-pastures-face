@@ -29,10 +29,14 @@ static AppTimer *s_battery_hide_timer = NULL;
 static AppTimer *s_first_tap_timer = NULL;
 static AppTimer *s_debounce_timer = NULL;
 static bool s_second_tap_waiting = false;
+static int s_detail_type = -1;
 
 static void battery_anim_stopped(Animation *anim, bool finished, void *context);
 static void battery_slide_anim_stopped(Animation *anim, bool finished, void *context);
 static void battery_hide_callback(void *context);
+#if defined(PBL_HEALTH)
+static void health_handler(HealthEventType event, void *context);
+#endif
 
 // MARK: Data refresh
 
@@ -41,7 +45,7 @@ static void refresh_all(void)
     tm birthday = settings_get_birthday_as_tm_struct();
     time_t now_time = time(NULL);
     tm now = *localtime(&now_time);
-    APP_LOG(APP_LOG_LEVEL_INFO, "Current birthday setting: %d-%d", birthday.tm_mon + 1, birthday.tm_mday);
+    // APP_LOG(APP_LOG_LEVEL_INFO, "Current birthday setting: %d-%d", birthday.tm_mon + 1, birthday.tm_mday);
     if (birthday.tm_mday != 0 && birthday.tm_mday == now.tm_mday && birthday.tm_mon == now.tm_mon)
     {
         weather_set_season(BIRTHDAY);
@@ -53,7 +57,34 @@ static void refresh_all(void)
     weather_set_condition(settings_get_weather_condition());
     clock_hand_set_sun_times(settings_get_sunrise_hour(), settings_get_sunset_hour());
 
-    if (settings_get_detail_type() == 1)
+    int detail_type = settings_get_detail_type();
+    if (detail_type != s_detail_type)
+    {
+        s_detail_type = detail_type;
+        bool use_health = (detail_type == 0);
+        frame_sprites_update_indicator(use_health);
+        frame_update_indicator();
+        detail_set_mode(use_health);
+#if defined(PBL_HEALTH)
+        if (use_health)
+        {
+            if (!health_service_events_subscribe(health_handler, NULL))
+            {
+                settings_set_detail_type(1);
+                s_detail_type = 1;
+                frame_sprites_update_indicator(false);
+                frame_update_indicator();
+                detail_set_mode(false);
+            }
+        }
+        else
+        {
+            health_service_events_unsubscribe();
+        }
+#endif
+    }
+
+    if (detail_type == 1)
     {
         int unit = settings_get_temperature_unit();
         int temp = (unit == 0) ? settings_get_temperature_c() : settings_get_temperature_f();
@@ -197,6 +228,9 @@ static void battery_show(void)
         return;
     }
     s_battery_visible = true;
+    frame_sprites_lazy_battery_init();
+    battery_lazy_init();
+    battery_set_obscured(s_face_y_offset < 0);
     battery_update_level(battery_state_service_peek().charge_percent);
     start_slide_animation(true);
     s_battery_hide_timer = app_timer_register(BATTERY_VISIBILITY_DURATION_MS, battery_hide_callback, NULL);
@@ -288,7 +322,7 @@ void init(Window *window)
 
     // Order matters for layering
     weather_init(s_face_content_layer);
-    detail_init(s_face_content_layer);
+    detail_init(s_face_content_layer, settings_get_detail_type() == 0);
     frame_init(s_face_content_layer);
     time_display_init(s_face_content_layer);
     clock_hand_init(s_face_content_layer);
@@ -299,12 +333,15 @@ void init(Window *window)
     {
         if (!health_service_events_subscribe(health_handler, NULL))
         {
-            APP_LOG(APP_LOG_LEVEL_ERROR, "Health not available, falling back to temperature");
             settings_set_detail_type(1);
+            frame_sprites_update_indicator(false);
+            frame_update_indicator();
+            detail_set_mode(false);
         }
     }
 #endif
 
+    s_detail_type = settings_get_detail_type();
     refresh_all();
 
     accel_tap_service_subscribe(accel_tap_handler);
@@ -343,10 +380,7 @@ void deinit(Window *window)
     }
 
 #if defined(PBL_HEALTH)
-    if (settings_get_detail_type() == 0)
-    {
-        health_service_events_unsubscribe();
-    }
+    health_service_events_unsubscribe();
 #endif
 
     messaging_deinit();
@@ -374,8 +408,8 @@ void deinit(Window *window)
 int main(void)
 {
     Window *window = window_create();
-    window_stack_push(window, false);
     init(window);
+    window_stack_push(window, false);
     app_event_loop();
     deinit(window);
 }
