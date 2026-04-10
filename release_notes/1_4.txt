@@ -1,0 +1,1 @@
+- Improve face open/close performance
