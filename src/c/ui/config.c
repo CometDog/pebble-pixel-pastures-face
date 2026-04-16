@@ -2,7 +2,7 @@
 
 #if defined(PBL_PLATFORM_GABBRO)
 #define LAYOUT_X 23
-#define LAYOUT_Y 56
+#define LAYOUT_Y 46
 #define LINE_HEIGHT 10
 #define LINE_DESCENDER 3
 
@@ -16,7 +16,7 @@ static const GRect s_clock_hand_rect = {.origin = {LAYOUT_X + 9, LAYOUT_Y + 4}, 
 static const GPoint s_time_board_origin = {LAYOUT_X + 0, LAYOUT_Y + 0};
 static const GPoint s_bottom_indicator_origin = {LAYOUT_X + 57, LAYOUT_Y + 126};
 
-#define BATTERY_Y_ORIGIN (LAYOUT_Y - 29)
+#define BATTERY_Y_ORIGIN (LAYOUT_Y - 19)
 #elif defined(PBL_PLATFORM_CHALK)
 #define LAYOUT_X 11
 #define LAYOUT_Y 33
@@ -24,8 +24,8 @@ static const GPoint s_bottom_indicator_origin = {LAYOUT_X + 57, LAYOUT_Y + 126};
 #define LINE_DESCENDER 2
 
 #define TIME_DATE_X_ORIGIN (LAYOUT_X + 54)
-#define DATE_Y_ORIGIN (LAYOUT_Y + 7)
-#define TIME_DATE_RECT_Y_DISTANCE 45
+#define DATE_Y_ORIGIN (LAYOUT_Y + 8)
+#define TIME_DATE_RECT_Y_DISTANCE 44
 #define TIME_DATE_RECT_WIDTH 80
 #define TIME_DATE_RECT_HEIGHT (19 + LINE_HEIGHT + LINE_DESCENDER)
 
@@ -58,8 +58,8 @@ static const GPoint s_bottom_indicator_origin = {LAYOUT_X + 57, LAYOUT_Y + 126};
 #define LINE_DESCENDER 2
 
 #define TIME_DATE_X_ORIGIN (LAYOUT_X + 54)
-#define DATE_Y_ORIGIN (LAYOUT_Y + 7)
-#define TIME_DATE_RECT_Y_DISTANCE 45
+#define DATE_Y_ORIGIN (LAYOUT_Y + 8)
+#define TIME_DATE_RECT_Y_DISTANCE 44
 #define TIME_DATE_RECT_WIDTH 80
 #define TIME_DATE_RECT_HEIGHT (19 + LINE_HEIGHT + LINE_DESCENDER)
 
