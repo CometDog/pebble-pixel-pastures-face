@@ -8,11 +8,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context)
     {
         if (strcmp(packet_get_string(iter, MESSAGE_KEY_type), "ready") == 0)
         {
-            if (packet_begin())
-            {
-                packet_put_string(MESSAGE_KEY_type, "requestWeatherUpdate");
-                packet_send(NULL);
-            }
+            messaging_request_weather_update();
         }
         else if (strcmp(packet_get_string(iter, MESSAGE_KEY_type), "weatherUpdate") == 0)
         {
@@ -51,6 +47,15 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context)
         }
 
         s_on_update();
+    }
+}
+
+void messaging_request_weather_update(void)
+{
+    if (packet_begin())
+    {
+        packet_put_string(MESSAGE_KEY_type, "requestWeatherUpdate");
+        packet_send(NULL);
     }
 }
 

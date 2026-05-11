@@ -222,14 +222,10 @@ Pebble.addEventListener("appmessage", async (e) => {
   console.log("Received message from watch: ", JSON.stringify(e.payload));
   if (e.payload.type === "requestWeatherUpdate") {
     if (navigator.geolocation) {
-      // Start a loop to update weather every 30 minutes
-      (function () {
-        window.navigator.geolocation.getCurrentPosition(
-          handlePositionSuccess,
-          handlePositionError,
-        );
-        setTimeout(arguments.callee, 1800000); // 30 minutes
-      })();
+      window.navigator.geolocation.getCurrentPosition(
+        handlePositionSuccess,
+        handlePositionError,
+      );
     }
   }
 });

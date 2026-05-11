@@ -7,3 +7,5 @@
 typedef void (*MessagingCallback)(void);
 void messaging_init(MessagingCallback on_update);
 void messaging_deinit(void);
+
+void messaging_request_weather_update(void);

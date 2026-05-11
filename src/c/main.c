@@ -275,6 +275,12 @@ static void accel_tap_handler(AccelAxisType axis, int32_t direction)
 
 static void global_tick_handler(struct tm *tick_time, TimeUnits units_changed)
 {
+    // At :00 and :30, request weather update
+    if (units_changed & MINUTE_UNIT && tick_time->tm_min % 30 == 0)
+    {
+        messaging_request_weather_update();
+    }
+
     clock_hand_tick_handler(tick_time, units_changed);
     time_display_tick_handler(tick_time, units_changed);
 }
