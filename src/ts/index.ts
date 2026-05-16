@@ -116,16 +116,9 @@ const getWeatherData = async (
     `https://api.open-meteo.com/v1/forecast?latitude=${coords.latitude}&longitude=${coords.longitude}&current_weather=true&daily=sunrise,sunset&timezone=auto`,
   );
   if (!rawWeatherConditions.ok) {
-    console.error(
-      "Error fetching weather data: ",
-      rawWeatherConditions.statusText,
+    throw new Error(
+      `Error fetching weather data: ${rawWeatherConditions.statusText}`,
     );
-    return {
-      weatherCondition: WeatherCondition.Sunny,
-      sunriseHour: 0,
-      sunsetHour: 0,
-      temperature: { c: 0, f: 32 },
-    };
   }
 
   const weatherData: OpenMeteoWeatherData = await rawWeatherConditions.json();
@@ -196,17 +189,20 @@ const getWeatherData = async (
 const handlePositionSuccess = async (position: GeolocationPosition) => {
   const season = getSeason(position.coords.latitude);
 
-  const weatherData = await getWeatherData(position.coords);
-
-  sendAppMessage({
-    type: "weatherUpdate",
-    season,
-    weatherCondition: weatherData.weatherCondition,
-    sunriseHour: weatherData.sunriseHour,
-    sunsetHour: weatherData.sunsetHour,
-    temperatureC: weatherData.temperature.c,
-    temperatureF: weatherData.temperature.f,
-  });
+  try {
+    const weatherData = await getWeatherData(position.coords);
+    sendAppMessage({
+      type: "weatherUpdate",
+      season,
+      weatherCondition: weatherData.weatherCondition,
+      sunriseHour: weatherData.sunriseHour,
+      sunsetHour: weatherData.sunsetHour,
+      temperatureC: weatherData.temperature.c,
+      temperatureF: weatherData.temperature.f,
+    });
+  } catch (e) {
+    console.error("Failed to get weather data, skipping watch update:", e);
+  }
 };
 
 const handlePositionError = (error: GeolocationPositionError) => {
