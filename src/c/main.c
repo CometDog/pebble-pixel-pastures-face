@@ -315,7 +315,24 @@ void init(Window *window)
     s_background_layer = layer_create(GRect(0, 0, PBL_DISPLAY_WIDTH, PBL_DISPLAY_HEIGHT));
     layer_add_child(window_layer, s_background_layer);
 
-    s_background_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND);
+    switch (settings_get_season())
+    {
+    case SPRING:
+        s_background_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND_SPRING);
+        break;
+    case SUMMER:
+        s_background_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND_SUMMER);
+        break;
+    case FALL:
+        s_background_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND_FALL);
+        break;
+    case WINTER:
+        s_background_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND_WINTER);
+        break;
+    default:
+        s_background_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND_SPRING);
+        break;
+    }
     s_background_bitmap_layer = bitmap_layer_create(GRect(0, 0, PBL_DISPLAY_WIDTH, PBL_DISPLAY_HEIGHT));
     bitmap_layer_set_bitmap(s_background_bitmap_layer, s_background_bitmap);
     layer_add_child(s_background_layer, bitmap_layer_get_layer(s_background_bitmap_layer));

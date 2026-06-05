@@ -121,8 +121,23 @@
         },
         {
           "type": "bitmap",
-          "name": "IMAGE_BACKGROUND",
-          "file": "images/background.png"
+          "name": "IMAGE_BACKGROUND_SPRING",
+          "file": "images/background-spring.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BACKGROUND_SUMMER",
+          "file": "images/background-summer.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BACKGROUND_FALL",
+          "file": "images/background-fall.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_BACKGROUND_WINTER",
+          "file": "images/background-winter.png"
         },
         {
           "type": "bitmap",
