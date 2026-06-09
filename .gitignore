@@ -1,4 +1,5 @@
 .vscode
+mock_private.h
 .lock-*
 build
 node_modules

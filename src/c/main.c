@@ -1,4 +1,5 @@
 #include "messaging.h"
+#include "mock.h"
 #include "pebble.h"
 #include "settings.h"
 #include "sprite/frame-sprites.h"
@@ -44,7 +45,7 @@ static void health_handler(HealthEventType event, void *context);
 static void refresh_all(void)
 {
     tm birthday = settings_get_birthday_as_tm_struct();
-    time_t now_time = time(NULL);
+    time_t now_time = mockable_time();
     tm now = *localtime(&now_time);
     // APP_LOG(APP_LOG_LEVEL_INFO, "Current birthday setting: %d-%d", birthday.tm_mon + 1, birthday.tm_mday);
     if (birthday.tm_mday != 0 && birthday.tm_mday == now.tm_mday && birthday.tm_mon == now.tm_mon)
@@ -103,7 +104,7 @@ static void refresh_all(void)
 static void health_update_steps(void)
 {
     HealthMetric metric = HealthMetricStepCount;
-    time_t now = time(NULL);
+    time_t now = mockable_time();
     time_t start = time_start_of_today();
 
     HealthServiceAccessibilityMask mask = health_service_metric_accessible(metric, start, now);
@@ -232,7 +233,7 @@ static void battery_show(void)
     frame_sprites_lazy_battery_init();
     battery_lazy_init();
     battery_set_obscured(s_face_y_offset < 0);
-    battery_update_level(battery_state_service_peek().charge_percent);
+    battery_update_level(mockable_battery_percent());
     start_slide_animation(true);
     s_battery_hide_timer = app_timer_register(BATTERY_VISIBILITY_DURATION_MS, battery_hide_callback, NULL);
 }
@@ -283,6 +284,7 @@ static void accel_tap_handler(AccelAxisType axis, int32_t direction)
 
 static void global_tick_handler(struct tm *tick_time, TimeUnits units_changed)
 {
+#if !MOCK_DATA
     // At :00 and :30, request weather update
     if (units_changed & MINUTE_UNIT && tick_time->tm_min % 30 == 0)
     {
@@ -291,6 +293,7 @@ static void global_tick_handler(struct tm *tick_time, TimeUnits units_changed)
 
     clock_hand_tick_handler(tick_time, units_changed);
     time_display_tick_handler(tick_time, units_changed);
+#endif
 }
 
 // MARK: (De)init
@@ -360,7 +363,7 @@ void init(Window *window)
     battery_init(window_layer);
     rain_init(window_layer);
 
-#if defined(PBL_HEALTH)
+#if defined(PBL_HEALTH) && !MOCK_DATA
     if (settings_get_detail_type() == 0)
     {
         if (!health_service_events_subscribe(health_handler, NULL))

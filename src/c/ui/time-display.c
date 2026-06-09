@@ -1,4 +1,5 @@
 #include "time-display.h"
+#include "../mock.h"
 
 #define SHADOW_OFFSET_COUNT 3
 
@@ -86,7 +87,7 @@ void time_display_init(Layer *parent_layer)
     layer_set_update_proc(s_time_display_layer, time_display_update_proc);
     layer_add_child(parent_layer, s_time_display_layer);
 
-    clock_set_text_for_time(time(NULL));
+    clock_set_text_for_time(mockable_time());
 }
 
 void time_display_deinit(void)

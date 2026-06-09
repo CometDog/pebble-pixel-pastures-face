@@ -1,0 +1,40 @@
+// Copy this file to mock_private.h
+
+#pragma once
+
+// --- Time ---
+// Timestamp
+#define MOCK_TIME 1781014140
+
+// --- Battery ---
+// 0-100
+#define MOCK_BATTERY_PERCENT 75
+
+// --- Step Count ---
+// 0-99999
+#define MOCK_STEP_COUNT 5000
+
+// --- Temperature ---
+#define MOCK_TEMPERATURE_C 10
+#define MOCK_TEMPERATURE_F 50
+
+// --- Weather ---
+// 0=RAINY, 1=SUNNY, 2=SNOWY, 3=WINDY, 4=STORMY
+#define MOCK_WEATHER_CONDITION 1
+
+// --- Season ---
+// 0=SPRING, 1=SUMMER, 2=FALL, 3=WINTER, 4=BIRTHDAY
+#define MOCK_SEASON 0
+
+// --- Sun Times ---
+// 0-24
+#define MOCK_SUNRISE_HOUR 6
+#define MOCK_SUNSET_HOUR 20
+
+// --- Detail Type ---
+// 0=steps, 1=temperature
+#define MOCK_DETAIL_TYPE 1
+
+// --- Temperature Unit ---
+// 0=Celsius, 1=Fahrenheit
+#define MOCK_TEMPERATURE_UNIT 0

@@ -1,4 +1,5 @@
 #include "settings.h"
+#include "mock.h"
 
 #define SEASON_KEY 1
 #define WEATHER_CONDITION_KEY 2
@@ -23,7 +24,11 @@ void settings_set_season(Season season)
 
 Season settings_get_season()
 {
+#if MOCK_DATA
+    return mocked_season();
+#else
     return settings_read(SEASON_KEY, SPRING);
+#endif
 }
 
 void settings_set_weather_condition(WeatherCondition condition)
@@ -33,7 +38,11 @@ void settings_set_weather_condition(WeatherCondition condition)
 
 WeatherCondition settings_get_weather_condition()
 {
+#if MOCK_DATA
+    return mocked_weather_condition();
+#else
     return settings_read(WEATHER_CONDITION_KEY, RAINY);
+#endif
 }
 
 void settings_set_sunrise_hour(int sunriseHour)
@@ -43,7 +52,11 @@ void settings_set_sunrise_hour(int sunriseHour)
 
 int settings_get_sunrise_hour()
 {
+#if MOCK_DATA
+    return mocked_sunrise_hour();
+#else
     return settings_read(SUNRISE_HOUR_KEY, 0);
+#endif
 }
 
 void settings_set_sunset_hour(int sunsetHour)
@@ -53,7 +66,11 @@ void settings_set_sunset_hour(int sunsetHour)
 
 int settings_get_sunset_hour()
 {
+#if MOCK_DATA
+    return mocked_sunset_hour();
+#else
     return settings_read(SUNSET_HOUR_KEY, 0);
+#endif
 }
 
 void settings_set_step_count(int stepCount)
@@ -63,7 +80,11 @@ void settings_set_step_count(int stepCount)
 
 int settings_get_step_count()
 {
+#if MOCK_DATA
+    return mocked_step_count();
+#else
     return settings_read(STEP_COUNT_KEY, 0);
+#endif
 }
 
 void settings_set_temperature_c(int temperatureC)
@@ -73,7 +94,11 @@ void settings_set_temperature_c(int temperatureC)
 
 int settings_get_temperature_c()
 {
+#if MOCK_DATA
+    return mocked_temperature_c();
+#else
     return settings_read(TEMPERATURE_C_KEY, 0);
+#endif
 }
 
 void settings_set_temperature_f(int temperatureF)
@@ -83,7 +108,11 @@ void settings_set_temperature_f(int temperatureF)
 
 int settings_get_temperature_f()
 {
+#if MOCK_DATA
+    return mocked_temperature_f();
+#else
     return settings_read(TEMPERATURE_F_KEY, 0);
+#endif
 }
 
 void settings_set_detail_type(int detailType)
@@ -93,10 +122,14 @@ void settings_set_detail_type(int detailType)
 
 int settings_get_detail_type()
 {
+#if MOCK_DATA
+    return mocked_detail_type();
+#else
 #if !defined(PBL_HEALTH)
     return 1;
 #else
     return settings_read(SETTINGS_DETAIL_TYPE_KEY, 0);
+#endif
 #endif
 }
 
@@ -107,7 +140,11 @@ void settings_set_temperature_unit(int temperatureUnit)
 
 int settings_get_temperature_unit()
 {
+#if MOCK_DATA
+    return mocked_temperature_unit();
+#else
     return settings_read(SETTINGS_TEMPERATURE_UNIT_KEY, 0);
+#endif
 }
 
 void settings_set_birthday(const char *birthday)
