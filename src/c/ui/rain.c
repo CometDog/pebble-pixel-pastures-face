@@ -1,6 +1,7 @@
 #include "rain.h"
-#include "config.h"
 
+// TODO: This pushes Aplite over the edge and I need to figure it out
+#ifndef PBL_PLATFORM_APLITE
 // MARK: Config constants
 
 #define RAIN_DROP_COUNT 35
@@ -145,3 +146,19 @@ void rain_deinit(void)
     rain_stop();
     layer_destroy(s_rain_layer);
 }
+#else
+void rain_run(void)
+{
+    // no-op
+}
+
+void rain_init(Layer *parent_layer)
+{
+    // no-op
+}
+
+void rain_deinit(void)
+{
+    // no-op
+}
+#endif
