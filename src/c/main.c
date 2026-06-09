@@ -8,6 +8,7 @@
 #include "ui/config.h"
 #include "ui/detail.h"
 #include "ui/frame.h"
+#include "ui/rain.h"
 #include "ui/time-display.h"
 #include "ui/weather.h"
 
@@ -251,6 +252,13 @@ static void tap_debounce_expired(void *context)
 
 static void accel_tap_handler(AccelAxisType axis, int32_t direction)
 {
+    // Start rain on any tap if weather is rainy or stormy
+    const WeatherCondition weather_condition = settings_get_weather_condition();
+    if (weather_condition == RAINY || weather_condition == STORMY)
+    {
+        rain_run();
+    }
+
     if (s_debounce_timer)
     {
         return;
@@ -350,6 +358,7 @@ void init(Window *window)
     time_display_init(s_face_content_layer);
     clock_hand_init(s_face_content_layer);
     battery_init(window_layer);
+    rain_init(window_layer);
 
 #if defined(PBL_HEALTH)
     if (settings_get_detail_type() == 0)
@@ -411,6 +420,7 @@ void deinit(Window *window)
     unobstructed_area_service_unsubscribe();
     tick_timer_service_unsubscribe();
 
+    rain_deinit();
     weather_deinit();
     detail_deinit();
     clock_hand_deinit();
