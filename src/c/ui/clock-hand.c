@@ -1,4 +1,5 @@
 #include "clock-hand.h"
+#include "../mock.h"
 
 static Layer *s_clock_hand_layer;
 static int8_t s_sunrise_hour = 0;
@@ -136,7 +137,7 @@ void clock_hand_set_sun_times(int sunrise_hour, int sunset_hour)
 {
     s_sunrise_hour = sunrise_hour;
     s_sunset_hour = sunset_hour;
-    clock_hand_set_for_time(time(NULL));
+    clock_hand_set_for_time(mockable_time());
 }
 
 void clock_hand_init(Layer *parent_layer)
@@ -161,7 +162,7 @@ void clock_hand_init(Layer *parent_layer)
     layer_add_child(s_clock_hand_layer, bitmap_layer_get_layer((BitmapLayer *)s_clock_hand_rot_bitmap_layer));
 #endif
 
-    clock_hand_set_for_time(time(NULL));
+    clock_hand_set_for_time(mockable_time());
 }
 
 void clock_hand_deinit(void)
