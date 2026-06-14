@@ -113,6 +113,11 @@ static void rain_stop(void)
         app_timer_cancel(s_new_rain_drop_timer);
         s_new_rain_drop_timer = NULL;
     }
+    if (s_rain_timer)
+    {
+        app_timer_cancel(s_rain_timer);
+        s_rain_timer = NULL;
+    }
     layer_mark_dirty(s_rain_layer);
 }
 
