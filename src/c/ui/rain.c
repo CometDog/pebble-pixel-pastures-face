@@ -1,17 +1,24 @@
 #include "rain.h"
+#include "math.h"
 
 // TODO: This pushes Aplite over the edge and I need to figure it out
 #ifndef PBL_PLATFORM_APLITE
 // MARK: Config constants
 
+#if defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_GABBRO)
+#define RAIN_DROP_SIZE_SCALING 1.25
+#else
+#define RAIN_DROP_SIZE_SCALING 1
+#endif
+
 #define RAIN_DROP_COUNT 35
-#define RAIN_FRAME_COUNT 180      // 6 seconds at 30fps
+#define RAIN_DURATION_MS 6000     // 6 seconds total animation time
 #define RAIN_FRAME_INTERVAL_MS 33 // ~30fps
 // The rain lines of stardew valley are about 18 pixels drawn at -115 degrees
 // Normally I would scale the rain lines on the larger displays but I prefer the
 // smaller sized drops on all platforms so this is a constant on all
-#define RAIN_LINE_DX -8 // cos(-115 degrees) * 18 =~ -8
-#define RAIN_LINE_DY 16 // sin(-115 degrees) * 18 * -1 =~ 16
+#define RAIN_LINE_DX -8 * RAIN_DROP_SIZE_SCALING // cos(-115 degrees) * 18 =~ -8
+#define RAIN_LINE_DY 16 * RAIN_DROP_SIZE_SCALING // sin(-115 degrees) * 18 * -1 =~ 16
 
 #ifdef PBL_COLOR
 #define RAIN_DROP_COLOR GColorBabyBlueEyes
@@ -23,8 +30,8 @@
 
 static Layer *s_rain_layer;
 static bool s_rain_active = false;
+static AppTimer *s_new_rain_drop_timer = NULL;
 static AppTimer *s_rain_timer = NULL;
-static int s_rain_frame = 0;
 
 typedef struct
 {
@@ -65,7 +72,7 @@ static void draw_rain_layer(Layer *layer, GContext *ctx)
     }
 
     graphics_context_set_stroke_color(ctx, RAIN_DROP_COLOR);
-    graphics_context_set_stroke_width(ctx, 1);
+    graphics_context_set_stroke_width(ctx, ceil(1 * RAIN_DROP_SIZE_SCALING));
 
     for (int i = 0; i < RAIN_DROP_COUNT; i++)
     {
@@ -75,15 +82,8 @@ static void draw_rain_layer(Layer *layer, GContext *ctx)
     }
 }
 
-static void rain_timer_callback(void *data)
+static void rain_drop_timer_callback(void *data)
 {
-    s_rain_frame++;
-    if (s_rain_frame >= RAIN_FRAME_COUNT)
-    {
-        rain_stop();
-        return;
-    }
-
     for (int i = 0; i < RAIN_DROP_COUNT; i++)
     {
         s_drops[i].x -= s_drops[i].speed;     // moves left
@@ -102,19 +102,23 @@ static void rain_timer_callback(void *data)
     }
 
     layer_mark_dirty(s_rain_layer);
-    s_rain_timer = app_timer_register(RAIN_FRAME_INTERVAL_MS, rain_timer_callback, NULL);
+    s_new_rain_drop_timer = app_timer_register(RAIN_FRAME_INTERVAL_MS, rain_drop_timer_callback, NULL);
 }
 
 static void rain_stop(void)
 {
     s_rain_active = false;
-    s_rain_frame = 0;
-    if (s_rain_timer)
+    if (s_new_rain_drop_timer)
     {
-        app_timer_cancel(s_rain_timer);
-        s_rain_timer = NULL;
+        app_timer_cancel(s_new_rain_drop_timer);
+        s_new_rain_drop_timer = NULL;
     }
     layer_mark_dirty(s_rain_layer);
+}
+
+static void rain_timer_end_callback(void *data)
+{
+    rain_stop();
 }
 
 // MARK: Public functions
@@ -123,14 +127,14 @@ void rain_run(void)
 {
     if (s_rain_active)
     {
-        rain_stop();
+        return;
     }
 
     s_rain_active = true;
-    s_rain_frame = 0;
     init_raindrops();
 
-    s_rain_timer = app_timer_register(RAIN_FRAME_INTERVAL_MS, rain_timer_callback, NULL);
+    s_rain_timer = app_timer_register(RAIN_DURATION_MS, rain_timer_end_callback, NULL);
+    s_new_rain_drop_timer = app_timer_register(RAIN_FRAME_INTERVAL_MS, rain_drop_timer_callback, NULL);
     layer_mark_dirty(s_rain_layer);
 }
 
@@ -145,6 +149,10 @@ void rain_deinit(void)
 {
     rain_stop();
     layer_destroy(s_rain_layer);
+    app_timer_cancel(s_new_rain_drop_timer);
+    s_new_rain_drop_timer = NULL;
+    app_timer_cancel(s_rain_timer);
+    s_rain_timer = NULL;
 }
 #else
 void rain_run(void)
