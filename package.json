@@ -37,7 +37,8 @@
       "temperatureF",
       "SETTINGS_DETAIL_TYPE",
       "SETTINGS_TEMPERATURE_UNIT",
-      "SETTINGS_BIRTHDAY"
+      "SETTINGS_BIRTHDAY",
+      "SETTINGS_PRIMARY_WEATHER_SOURCE"
     ],
     "capabilities": [
       "health",
