@@ -4,4 +4,6 @@ Graphical assets in this repository are not covered by the GPL. They are recreat
 
 This watchface is an unofficial fan project and is not affiliated with or endorsed by ConcernedApe.
 
-Weather data provided by Open-Meteo (https://open-meteo.com/), a free, open-source weather API.
+Weather data provided by:
+- Open-Meteo (https://open-meteo.com/), a free, open-source weather API.
+- The US National Weather Service (https://weather.gov/)
