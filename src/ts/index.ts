@@ -99,7 +99,7 @@ interface OpenMeteoWeatherData {
 
 interface NWSPointResponse {
   properties: {
-    forecastHourly: string;
+    observationStations: string;
     astronomicalData?: {
       sunrise: string;
       sunset: string;
@@ -107,17 +107,20 @@ interface NWSPointResponse {
   };
 }
 
-interface NWSHourlyPeriod {
-  startTime: string;
-  endTime: string;
-  temperature: number;
-  temperatureUnit: string;
-  shortForecast: string;
+interface NWSObservationStationsResponse {
+  observationStations: string[];
 }
 
-interface NWSHourlyResponse {
+interface NWSObservationResponse {
   properties: {
-    periods: NWSHourlyPeriod[];
+    textDescription: string;
+    presentWeather?: Array<{
+      weather: string;
+    }>;
+    temperature: {
+      value: number | null;
+      unitCode: string;
+    };
   };
 }
 
@@ -158,26 +161,37 @@ const getSeason = (latitiude: GeolocationCoordinates["latitude"]): Season => {
 const parseISODateHour = (isoString: string): number =>
   new Date(isoString).getHours();
 
-const parseNWSCondition = (shortForecast: string): WeatherCondition => {
-  const forecast = shortForecast.toLowerCase();
-  if (forecast.includes("thunder") || forecast.includes("tornado"))
-    return WeatherCondition.Stormy;
-  if (
-    forecast.includes("snow") ||
-    forecast.includes("sleet") ||
-    forecast.includes("ice") ||
-    forecast.includes("freezing") ||
-    forecast.includes("blizzard")
-  )
-    return WeatherCondition.Snowy;
-  if (
-    forecast.includes("rain") ||
-    forecast.includes("drizzle") ||
-    forecast.includes("shower")
-  )
-    return WeatherCondition.Rainy;
-  if (forecast.includes("wind") || forecast.includes("blowing"))
-    return WeatherCondition.Windy;
+const parseNWSObservationCondition = (
+  observation: NWSObservationResponse["properties"],
+): WeatherCondition => {
+  if (observation.presentWeather && observation.presentWeather.length > 0) {
+    for (const condition of observation.presentWeather) {
+      switch (condition.weather.toLowerCase()) {
+        case "thunderstorm":
+          return WeatherCondition.Stormy;
+        case "snow":
+        case "snow_pellets":
+        case "ice_crystals":
+        case "ice_pellets":
+        case "snow_grains":
+        case "hail":
+          return WeatherCondition.Snowy;
+        case "rain":
+        case "drizzle":
+        case "spray":
+          return WeatherCondition.Rainy;
+        case "squalls":
+        case "dust_whirls":
+        case "dust_storm":
+        case "blowing_sand":
+        case "dust":
+          return WeatherCondition.Windy;
+        default:
+          return WeatherCondition.Sunny;
+      }
+    }
+  }
+  // TODO: Handle this fall back if the condition isn't met more intelligently.
   return WeatherCondition.Sunny;
 };
 
@@ -277,34 +291,54 @@ const getNWSWeatherSnapshot = async (
     );
   }
 
-  const hourlyRes = await fetch(pointsData.properties.forecastHourly, {
+  const stationsRes = await fetch(pointsData.properties.observationStations, {
     headers: {
       Accept: "application/geo+json",
-      "User-Agent": "(PebbleWatchface, contact@example.com)",
+      "User-Agent": "(Pebble Pixel Pastures, scrums-malady6l@icloud.com)",
     },
   });
-  if (!hourlyRes.ok) {
-    throw new Error(`NWS hourly request failed: ${hourlyRes.statusText}`);
+  if (!stationsRes.ok) {
+    throw new Error(`NWS stations request failed: ${stationsRes.statusText}`);
   }
 
-  const hourlyData: NWSHourlyResponse = await hourlyRes.json();
-  const now = new Date();
-  const currentPeriod = hourlyData.properties.periods.find((period) => {
-    const start = new Date(period.startTime);
-    const end = new Date(period.endTime);
-    return now >= start && now < end;
+  const stationsData: NWSObservationStationsResponse = await stationsRes.json();
+  const firstStationUrl = stationsData.observationStations?.[0];
+  if (!firstStationUrl) {
+    throw new Error("No observation stations found from NWS points response");
+  }
+
+  const observationRes = await fetch(`${firstStationUrl}/observations/latest`, {
+    headers: {
+      Accept: "application/geo+json",
+      "User-Agent": "(Pebble Pixel Pastures, scrums-malady6l@icloud.com)",
+    },
   });
-
-  if (!currentPeriod) {
-    throw new Error("No current hourly period found in NWS forecast");
+  if (!observationRes.ok) {
+    throw new Error(
+      `NWS observation request failed: ${observationRes.statusText}`,
+    );
   }
 
-  const weatherCondition = parseNWSCondition(currentPeriod.shortForecast);
+  const observationData: NWSObservationResponse = await observationRes.json();
+  const weatherCondition = parseNWSObservationCondition(
+    observationData.properties,
+  );
 
-  const temperature =
-    currentPeriod.temperatureUnit === "C"
-      ? normalizeTemperature({ celsius: currentPeriod.temperature })
-      : normalizeTemperature({ fahrenheit: currentPeriod.temperature });
+  const tempValue = observationData.properties.temperature.value;
+  if (tempValue === null) {
+    throw new Error("NWS observation temperature value is null");
+  }
+
+  const unitCode =
+    observationData.properties.temperature.unitCode.toLowerCase();
+  let temperature: { c: number; f: number };
+  if (unitCode.includes("degc")) {
+    temperature = normalizeTemperature({ celsius: tempValue });
+  } else if (unitCode.includes("degf")) {
+    temperature = normalizeTemperature({ fahrenheit: tempValue });
+  } else {
+    throw new Error(`Unknown temperature unit code: ${unitCode}`);
+  }
 
   return { weatherCondition, sunriseHour, sunsetHour, temperature };
 };
