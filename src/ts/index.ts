@@ -35,10 +35,44 @@ const clayConfig = [
         messageKey: "SETTINGS_PRIMARY_WEATHER_SOURCE",
         label: "Primary weather source",
         description: "OpenMeteo is the fallback in case of failures",
+        defaultValue: "0",
         options: [
           { label: "OpenMeteo", value: "0" },
           { label: "US National Weather Service", value: "1" },
         ],
+      },
+      {
+        type: "select",
+        messageKey: "SETTINGS_SUNRISE_SUNSET_SOURCE",
+        label: "Sunrise/Sunset source",
+        description:
+          "Adjust how sunrise/sunset is calculated on the daytime meter",
+        defaultValue: "1",
+        options: [
+          { label: "Stardew Valley Time (6/18)", value: "0" },
+          { label: "Real World Location", value: "1" },
+          { label: "Manual (Set below)", value: "2" },
+        ],
+      },
+      {
+        type: "slider",
+        messageKey: "SETTINGS_MANUAL_SUNRISE_TIME",
+        label: "Manual Sunrise Time",
+        description: "Set the sunrise time when using the manual source",
+        defaultValue: 6,
+        min: 4,
+        max: 10,
+        step: 1,
+      },
+      {
+        type: "slider",
+        messageKey: "SETTINGS_MANUAL_SUNSET_TIME",
+        label: "Manual Sunset Time",
+        description: "Set the sunset time when using the manual source",
+        defaultValue: 18,
+        min: 16,
+        max: 22,
+        step: 1,
       },
       {
         type: "input",
@@ -60,15 +94,26 @@ const clayConfig = [
 
 const clay = new Clay(clayConfig);
 
+const STARDEW_SUNRISE_HOUR = 6;
+const STARDEW_SUNSET_HOUR = 18;
 const CUSTOM_SETTINGS_KEY = "pixel-pasture-settings";
 interface CustomSettings {
   primary_weather_provider: WeatherProvider;
   fallback_ttl?: number;
+  sunrise_sunset_source: SunriseSunsetSource;
+  manual_sunrise_time: number;
+  manual_sunset_time: number;
 }
 
 enum WeatherProvider {
   OpenMeteo = 0,
   USNationalWeatherService = 1,
+}
+
+enum SunriseSunsetSource {
+  StardewValleyTime = 0,
+  RealWorldLocation = 1,
+  Manual = 2,
 }
 
 enum Season {
@@ -279,17 +324,34 @@ const getNWSWeatherSnapshot = async (
 
   const pointsData: NWSPointResponse = await pointsRes.json();
 
-  // TODO: I should handle the sunrise/sunset fallback more intelligently
-  let sunriseHour = 6;
-  let sunsetHour = 18;
-  if (pointsData.properties.astronomicalData) {
-    sunriseHour = parseISODateHour(
-      pointsData.properties.astronomicalData.sunrise,
-    );
-    sunsetHour = parseISODateHour(
-      pointsData.properties.astronomicalData.sunset,
-    );
-  }
+  const { sunriseHour, sunsetHour } = (function () {
+    switch (getSunriseSunsetSource()) {
+      case SunriseSunsetSource.StardewValleyTime:
+        return {
+          sunriseHour: STARDEW_SUNRISE_HOUR,
+          sunsetHour: STARDEW_SUNSET_HOUR,
+        };
+      case SunriseSunsetSource.Manual:
+        return getManualSunriseSunsetHours();
+      case SunriseSunsetSource.RealWorldLocation:
+      default:
+        if (pointsData.properties.astronomicalData) {
+          return {
+            sunriseHour: parseISODateHour(
+              pointsData.properties.astronomicalData.sunrise,
+            ),
+            sunsetHour: parseISODateHour(
+              pointsData.properties.astronomicalData.sunset,
+            ),
+          };
+        } else {
+          return {
+            sunriseHour: STARDEW_SUNRISE_HOUR,
+            sunsetHour: STARDEW_SUNSET_HOUR,
+          };
+        }
+    }
+  })();
 
   const stationsRes = await fetch(pointsData.properties.observationStations, {
     headers: {
@@ -367,8 +429,23 @@ const getOpenMeteoWeatherSnapshot = async (
     weatherData.current_weather.weathercode,
   );
 
-  const sunriseHour = parseISODateHour(weatherData.daily.sunrise[0]);
-  const sunsetHour = parseISODateHour(weatherData.daily.sunset[0]);
+  const { sunriseHour, sunsetHour } = (function () {
+    switch (getSunriseSunsetSource()) {
+      case SunriseSunsetSource.StardewValleyTime:
+        return {
+          sunriseHour: STARDEW_SUNRISE_HOUR,
+          sunsetHour: STARDEW_SUNSET_HOUR,
+        };
+      case SunriseSunsetSource.Manual:
+        return getManualSunriseSunsetHours();
+      case SunriseSunsetSource.RealWorldLocation:
+      default:
+        return {
+          sunriseHour: parseISODateHour(weatherData.daily.sunrise[0]),
+          sunsetHour: parseISODateHour(weatherData.daily.sunset[0]),
+        };
+    }
+  })();
 
   const temperature = normalizeTemperature({
     celsius: weatherData.current_weather.temperature,
@@ -439,7 +516,7 @@ const getWeatherProvider = (): WeatherProvider => {
   const settings: CustomSettings = JSON.parse(
     localStorage.getItem(CUSTOM_SETTINGS_KEY) ?? "{}",
   );
-  if (settings.primary_weather_provider) {
+  if (settings?.primary_weather_provider) {
     if (
       settings.fallback_ttl === undefined ||
       settings.fallback_ttl < Date.now()
@@ -457,49 +534,116 @@ const getWeatherProvider = (): WeatherProvider => {
   }
 };
 
-const setWeatherProvider = (newWeatherProvider: WeatherProvider) => {
+const getSunriseSunsetSource = (): SunriseSunsetSource => {
+  const settings: CustomSettings = JSON.parse(
+    localStorage.getItem(CUSTOM_SETTINGS_KEY) ?? "{}",
+  );
+  return (
+    settings?.sunrise_sunset_source ?? SunriseSunsetSource.RealWorldLocation
+  );
+};
+
+const getManualSunriseSunsetHours = (): {
+  sunriseHour: number;
+  sunsetHour: number;
+} => {
+  const settings: CustomSettings = JSON.parse(
+    localStorage.getItem(CUSTOM_SETTINGS_KEY) ?? "{}",
+  );
+  return {
+    sunriseHour: settings?.manual_sunrise_time ?? STARDEW_SUNRISE_HOUR,
+    sunsetHour: settings?.manual_sunset_time ?? STARDEW_SUNSET_HOUR,
+  };
+};
+
+const setLocalSettings = ({
+  newWeatherProvider,
+  newSunriseSunsetSource,
+  newManualSunriseTime,
+  newManualSunsetTime,
+}: {
+  newWeatherProvider: WeatherProvider;
+  newSunriseSunsetSource: SunriseSunsetSource;
+  newManualSunriseTime: number;
+  newManualSunsetTime: number;
+}) => {
   const localSettings: CustomSettings = JSON.parse(
     localStorage.getItem(CUSTOM_SETTINGS_KEY) ?? "{}",
   );
   const currentWeatherProvider =
     localSettings?.primary_weather_provider ?? null;
+
+  let fallback_ttl = localSettings?.fallback_ttl ?? 0;
   if (
-    currentWeatherProvider !== null &&
-    newWeatherProvider === currentWeatherProvider
+    currentWeatherProvider == null ||
+    newWeatherProvider !== currentWeatherProvider
   ) {
-    return;
+    fallback_ttl = 0;
   }
 
   localStorage.setItem(
     CUSTOM_SETTINGS_KEY,
     JSON.stringify({
       ...localSettings,
-      primary_weather_provider: newWeatherProvider,
+      ...({
+        primary_weather_provider: newWeatherProvider,
+        fallback_ttl,
+        sunrise_sunset_source: newSunriseSunsetSource,
+        manual_sunrise_time: newManualSunriseTime,
+        manual_sunset_time: newManualSunsetTime,
+      } as CustomSettings),
     } as CustomSettings),
   );
-
-  weatherRefresh();
 };
 
 Pebble.addEventListener("ready", async (_) => {
   console.log("PebbleKit JS ready!");
   const settings = JSON.parse(localStorage.getItem("clay-settings") ?? "{}");
-  const weatherProvider =
-    settings?.["SETTINGS_PRIMARY_WEATHER_SOURCE"] === "1"
-      ? WeatherProvider.USNationalWeatherService
-      : WeatherProvider.OpenMeteo;
-  setWeatherProvider(weatherProvider);
+  const weatherProvider = Number(
+    settings?.["SETTINGS_PRIMARY_WEATHER_SOURCE"] ?? "0",
+  ) as WeatherProvider;
+
+  const sunriseSunsetSource = Number(
+    settings?.["SETTINGS_SUNRISE_SUNSET_SOURCE"] ?? "1",
+  ) as SunriseSunsetSource;
+
+  const manualSunriseTime =
+    settings?.["SETTINGS_MANUAL_SUNRISE_TIME"] ?? STARDEW_SUNRISE_HOUR;
+
+  const manualSunsetTime =
+    settings?.["SETTINGS_MANUAL_SUNSET_TIME"] ?? STARDEW_SUNSET_HOUR;
+
+  setLocalSettings({
+    newWeatherProvider: weatherProvider,
+    newSunriseSunsetSource: sunriseSunsetSource,
+    newManualSunriseTime: manualSunriseTime,
+    newManualSunsetTime: manualSunsetTime,
+  });
+
   sendAppMessage({ type: "ready" });
 });
 
 // @ts-ignore
 Pebble.addEventListener("webviewclosed", async (e: any) => {
   const settings = clay.getSettings(e.response);
-  const weatherProvider =
-    settings?.["10010"] === "1"
-      ? WeatherProvider.USNationalWeatherService
-      : WeatherProvider.OpenMeteo;
-  setWeatherProvider(weatherProvider);
+  const weatherProvider = Number(settings?.["10010"] ?? "0") as WeatherProvider;
+
+  const sunriseSunsetSource = Number(
+    settings?.["10011"] ?? "1",
+  ) as SunriseSunsetSource;
+
+  const manualSunriseTime = settings?.["10012"] ?? STARDEW_SUNRISE_HOUR;
+
+  const manualSunsetTime = settings?.["10013"] ?? STARDEW_SUNSET_HOUR;
+
+  setLocalSettings({
+    newWeatherProvider: weatherProvider,
+    newSunriseSunsetSource: sunriseSunsetSource,
+    newManualSunriseTime: manualSunriseTime,
+    newManualSunsetTime: manualSunsetTime,
+  });
+
+  weatherRefresh();
 });
 
 Pebble.addEventListener("appmessage", async (e) => {
